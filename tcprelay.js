@@ -1,6 +1,6 @@
 const net = require('net');
 const path = require('path');
-const log4js = require('log4js');
+// const log4js = require('log4js');
 const WebSocket = require('ws');
 const Encryptor = require('shadowsocks/lib/shadowsocks/encrypt').Encryptor;
 // const WSErrorCode = require('ws/lib/ErrorCodes');
@@ -149,10 +149,10 @@ TCPRelay.prototype.getLogFile = function() {
 
 TCPRelay.prototype.initLogger = function() {
 	if (this.logFile) {
-		log4js.loadAppender('file');
-		log4js.addAppender(log4js.appenders.file(this.logFile), this.getServerName());
+		require('log4js').loadAppender('file');
+		require('log4js').addAppender(require('log4js').appenders.file(this.logFile), this.getServerName());
 	}
-	this.logger = log4js.getLogger(this.getServerName());
+	this.logger = require('log4js').getLogger(this.getServerName());
 	this.logger.level = this.logLevel;
 };
 
