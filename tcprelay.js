@@ -3,7 +3,7 @@ const path = require('path');
 const log4js = require('log4js');
 const WebSocket = require('ws');
 const Encryptor = require('shadowsocks/lib/shadowsocks/encrypt').Encryptor;
-const WSErrorCode = require('ws/lib/ErrorCodes');
+// const WSErrorCode = require('ws/lib/ErrorCodes');
 
 const MAX_CONNECTIONS = 50000;
 
@@ -153,7 +153,7 @@ TCPRelay.prototype.initLogger = function() {
 		log4js.addAppender(log4js.appenders.file(this.logFile), this.getServerName());
 	}
 	this.logger = log4js.getLogger(this.getServerName());
-	this.logger.setLevel(this.logLevel);
+	this.logger.level = this.logLevel;
 };
 
 TCPRelay.prototype.initServer = function() {
@@ -172,10 +172,10 @@ TCPRelay.prototype.initServer = function() {
 			server.on('connection', function(connection) {
 				return self.handleConnectionByLocal(connection);
 			});
-			server.on('close', function() {
-				self.logger.info('server is closed');
-				self.status = SERVER_STATUS_STOPPED;
-			});
+			// server.on('close', function() {
+			// 	self.logger.info('server is closed');
+			// 	self.status = SERVER_STATUS_STOPPED;
+			// });
 			server.listen(port, address);
 		} else {
 			server = self.server = new WebSocket.Server({
@@ -188,6 +188,10 @@ TCPRelay.prototype.initServer = function() {
 				return self.handleConnectionByServer(connection);
 			});
 		}
+		server.on('close', function() {
+			self.logger.info('server is closed');
+			self.status = SERVER_STATUS_STOPPED;
+		});
 		server.on('error', function(error) {
 			self.logger.fatal('an error of', self.getServerName(), 'occured', error);
 			self.status = SERVER_STATUS_STOPPED;
@@ -300,7 +304,7 @@ TCPRelay.prototype.handleConnectionByServer = function(connection) {
 		}
 	});
 	connection.on('close', function(code, reason) {
-		logger.info(`[${connectionId}]: close event[code = '${WSErrorCode[code]}'] of local connection has been triggered`);
+		logger.info(`[${connectionId}]: close event[code = '${code}'] of local connection has been triggered`);
 		connections[connectionId] = null;
 		targetConnection && targetConnection.destroy();
 	});
@@ -399,7 +403,7 @@ TCPRelay.prototype.handleConnectionByLocal = function(connection) {
 					connection.end();
 				});
 				serverConnection.on('close', function(code, reason) {
-					logger.info(`[${connectionId}]: close event[code = '${WSErrorCode[code]}'] of server connection has been triggered`);
+					logger.info(`[${connectionId}]: close event[code = '${code}'] of server connection has been triggered`);
 					stage = STAGE_DESTROYED;
 					connection.end();
 				});
